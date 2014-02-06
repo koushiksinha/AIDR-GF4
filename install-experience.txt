@@ -1,0 +1,43 @@
+
+I. aidr-tagger:
+
+Need to capture that config/config.txt needs to be modified with MySQL DB settings. 
+
+The stored procedure src/main/scripts/populate_db_attributes.sql throws up the error: ERROR 1452 (23000) at line 5: Cannot add or update a child row: a foreign key constraint fails (`aidr_predict`.`nominal_attribute`, CONSTRAINT `fk_nominalAttribute_users_userID` FOREIGN KEY (`userID`) REFERENCES `users` (`userID`) ON DELETE CASCADE ON UPDATE CASCADE)
+
+
+II. aidr-tagger-api:
+
+Need to capture that appropriate JDBC resources have to be created in server (e.g., Glassfish) to match the JNDI names (JNDI/aidr_predict and JNDI/aidr_fetch_manager) mentioned in src/main/resource/META-INF/persistence.xml.
+
+
+III. aidr-trainer-api
+
+Need to capture that user has to appropriately set the properties in the database.properties and databaseTemp.properties files under src/main/resources.
+
+Test errors:
+------------
+1. testFindByCrisisID(qa.qcri.aidr.trainer.api.service.CrisisServiceTest)  Time elapsed: 0.049 sec  <<< ERROR!
+java.lang.NullPointerException
+
+2. testTaskAnswerOne(qa.qcri.aidr.trainer.api.service.TaskAnswerServiceTest)  Time elapsed: 0.033 sec  <<< ERROR!
+java.lang.NullPointerException
+
+
+IV. aidr-trainer-pybossa
+
+Need to capture that user has to appropriately set the properties in the database.properties under src/main/resources
+
+Test error:
+------------
+testCreateTaskQueue(qa.qcri.aidr.trainer.pybossa.service.TaskQueueServiceTest)  Time elapsed: 0.005 sec  <<< ERROR!
+java.io.FileNotFoundException: /Users/jlucas/Downloads/pybossaDownload/nov9_11_02am.json (No such file or directory)
+
+Root cause: hard-coded file name in TaskQueueServiceTest.java
+
+
+
+ 
+
+
+
