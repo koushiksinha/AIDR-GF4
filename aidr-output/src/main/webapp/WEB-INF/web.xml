@@ -10,45 +10,23 @@
     <welcome-file>default.jsp</welcome-file>
   </welcome-file-list>
   <servlet>
-   <servlet-name>AIDROutput JAX-RS Servlet</servlet-name>
-    <servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>
-    <init-param>
-    	<param-name>org.glassfish.jersey.config.property.packages</param-name>
-      	<param-value>qa.qcri.aidr.output.getdata</param-value>
-    </init-param>
-    <load-on-startup>1</load-on-startup>
- </servlet>
- <servlet>
-   <servlet-name>AIDROutputPing</servlet-name>
-    <servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>
-    <init-param>
-    	<param-name>org.glassfish.jersey.config.property.packages</param-name>
-      	<param-value>qa.qcri.aidr.output.utils</param-value>
-    </init-param>
-    <load-on-startup>1</load-on-startup>
- </servlet>
- 
-  <servlet>
-    <servlet-name>AIDROutputStream</servlet-name>
-    <servlet-class>qa.qcri.aidr.output.stream.RedisHTTPStreaming</servlet-class>
-  </servlet>
-  
-  <servlet-mapping>
-  	<servlet-name>AIDROutputStream</servlet-name>
-  	<url-pattern>/crisis/stream/*</url-pattern>
-  </servlet-mapping>
-  
-  <servlet-mapping>
-  	<servlet-name>AIDROutputPing</servlet-name>
-  	<url-pattern>/rest/manage/*</url-pattern>
-  </servlet-mapping>
-  
-  <servlet-mapping>
-    <servlet-name>AIDROutput JAX-RS Servlet</servlet-name>
-    <url-pattern>/rest/crisis/fetch/*</url-pattern>
-  </servlet-mapping>
-  
+        <servlet-name>javax.ws.rs.core.Application</servlet-name>
+        <load-on-startup>1</load-on-startup>
+        <async-supported>true</async-supported>
+    </servlet>
+
+	<servlet-mapping>
+		<servlet-name>javax.ws.rs.core.Application</servlet-name>
+		<url-pattern>/rest/*</url-pattern>
+	</servlet-mapping>
+   
   <listener>
 		<listener-class>qa.qcri.aidr.output.getdata.GetBufferedAIDRData</listener-class>
+	</listener>
+	<listener>
+		<listener-class>qa.qcri.aidr.output.stream.AsyncStream</listener-class>
+	</listener>
+	<listener>
+		<listener-class>qa.qcri.aidr.output.stream.NewTestChunkedOutput</listener-class>
 	</listener>
 </web-app>

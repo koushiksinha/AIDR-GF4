@@ -69,10 +69,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 
-import com.sun.jersey.spi.resource.Singleton;
-
-
-
 
 //import org.apache.log4j.BasicConfigurator;
 import org.slf4j.Logger;
@@ -81,8 +77,7 @@ import org.slf4j.LoggerFactory;
 import qa.qcri.aidr.output.utils.AIDROutputConfig;
 import qa.qcri.aidr.output.utils.JsonDataFormatter;
 
-@Path("/")
-@Singleton
+@Path("/crisis/fetch/")
 public class GetBufferedAIDRData implements ServletContextListener {
 
 	// Debugging
@@ -94,10 +89,9 @@ public class GetBufferedAIDRData implements ServletContextListener {
 	private static final int MAX_MESSAGES_COUNT = 1000;
 	private static final int DEFAULT_COUNT = 50;		// default number of messages to fetch
 	private static final String DEFAULT_COUNT_STR = "50";
-	private int messageCount = DEFAULT_COUNT;			// number of messages to fetch
 
 	private static ChannelBufferManager cbManager; 			// managing buffers for each publishing channel
-	private final boolean rejectNullFlag = true;
+	private static final boolean rejectNullFlag = true;
 	/////////////////////////////////////////////////////////////////////////////
 	@POST
 	@Path("/{crisisCode}")
@@ -116,7 +110,7 @@ public class GetBufferedAIDRData implements ServletContextListener {
 	@Path("/channels/list")
 	@Produces("text/html")
 	public Response getActiveChannelsList() {
-		
+
 		Set<String> channelList = cbManager.getActiveChannelsList();
 		StringBuilder htmlMessageString = new StringBuilder();
 
@@ -152,10 +146,11 @@ public class GetBufferedAIDRData implements ServletContextListener {
 	public Response getLatestBufferedAIDRData(@QueryParam("callback") String callbackName,
 			@DefaultValue("1") @QueryParam("count") String count) {
 
-		if (cbManager.jedisConn.getPoolSetup()) {		// Jedis pool is ready
+		logger.info("[getLatestBufferedAIDRData] request received");
+		if (null != cbManager.jedisConn && cbManager.jedisConn.isPoolSetup()) {		// Jedis pool is ready
 			// Get the last count number of messages for channel=channelCode
 			List<String> bufferedMessages = new ArrayList<String>();
-			messageCount = Integer.parseInt(count);		// number of latest messages across all channels to return
+			final int messageCount = Integer.parseInt(count);		// number of latest messages across all channels to return
 			List<String> temp = cbManager.getLatestFromAllChannels(messageCount);
 			bufferedMessages.addAll(temp != null ? temp : new ArrayList<String>());
 			if (temp != null) {
@@ -189,7 +184,8 @@ public class GetBufferedAIDRData implements ServletContextListener {
 			@QueryParam("callback") String callbackName,
 			@DefaultValue(DEFAULT_COUNT_STR) @QueryParam("count") String count) {
 
-		if (cbManager.jedisConn.getPoolSetup()) {
+		logger.info("[getBufferedAIDRData] request received");
+		if (null != cbManager.jedisConn && cbManager.jedisConn.isPoolSetup()) {
 			boolean error = false;
 			// Parse the HTTP GET request and generating results for output
 			// Set the response MIME type of the response message
@@ -240,6 +236,7 @@ public class GetBufferedAIDRData implements ServletContextListener {
 				}
 				if (isChannelPresent(channelName)) {
 					int msgCount = Integer.parseInt(count);
+					int messageCount = DEFAULT_COUNT;
 					if (msgCount > 0) {
 						messageCount = Math.min(msgCount, MAX_MESSAGES_COUNT);
 					}
@@ -316,21 +313,24 @@ public class GetBufferedAIDRData implements ServletContextListener {
 
 		return Response.ok(htmlMessageString.toString()).build();
 	}
-	
+
 	@GET
-	@Path("/error/restart/{passcode}")
+	@Path("/manage/restart/{passcode}")
 	@Produces("application/json")
 	public Response restartFetchService(@PathParam("passcode") String passcode) {
-		if (passcode.equals("sysadmin2013"))
-		if (cbManager != null) {
-			cbManager.close();
+		logger.info("[restartFetchService] request received");
+		if (passcode.equals("sysadmin2013")) {
+			if (cbManager != null) {
+				cbManager.close();
+			}
+			cbManager = new ChannelBufferManager(CHANNEL_REG_EX);
+			logger.info("aidr-output fetch service restarted...");
+			final String statusStr = "{\"aidr-output fetch service\":\"RESTARTED\"}";
+			return Response.ok(statusStr).build();
 		}
-		cbManager = new ChannelBufferManager(CHANNEL_REG_EX);
-		logger.info("aidr-output fetch service restarted...");
-		final String statusStr = "{\"aidr-output fetch service\":\"RESTARTED\"}";
-		return Response.ok(statusStr).build();
+		return Response.ok(new String("{\"password\":\"invalid\"}")).build();
 	}
-	
+
 	@Override
 	public void contextDestroyed(ServletContextEvent sce) {
 		cbManager.close();
@@ -350,7 +350,7 @@ public class GetBufferedAIDRData implements ServletContextListener {
 		if (configParams.get("logger").equalsIgnoreCase("slf4j")) {
 			System.setProperty(org.slf4j.impl.SimpleLogger.DEFAULT_LOG_LEVEL_KEY, "INFO");	// set logging level for slf4j
 		}
-		
+
 		// Most important action - setup channel buffering thread
 		cbManager = new ChannelBufferManager(CHANNEL_REG_EX);
 		logger.info("Context Initialized");

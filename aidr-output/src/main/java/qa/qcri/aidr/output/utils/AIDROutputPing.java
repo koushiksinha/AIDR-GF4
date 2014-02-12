@@ -34,19 +34,17 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.exceptions.JedisConnectionException;
 
 
-@Path("/")
+@Path("/manage")
 public class AIDROutputPing {
 
 	public static JedisConnectionObject jedisConn;		// we need only a single instance of JedisConnectionObject running in background
-	private Jedis jedis;
-
 	private static String host = "localhost";
 	private static int port = 1978; 
 
 	private static HashMap<String, Method>APIHashMap = null;
 
 	// Debugging
-	private static Logger logger = LoggerFactory.getLogger(GetBufferedAIDRData.class);
+	private static Logger logger = LoggerFactory.getLogger(AIDROutputPing.class);
 
 	public AIDROutputPing() {
 		this(host, port);
@@ -130,6 +128,7 @@ public class AIDROutputPing {
 		logger.info("[pingAIDROutput] Ping request received...");
 		// First ensure that AIDROutput is up and running
 		String result = null;
+		Jedis jedis = null;
 		try {
 			jedis = jedisConn.getJedisResource();
 			if (jedis != null) {
@@ -143,7 +142,7 @@ public class AIDROutputPing {
 		StringBuilder jsonpRes = new StringBuilder();
 		if (callbackName != null) jsonpRes.append(callbackName).append("(");
 		
-		if (result.equalsIgnoreCase("pong")) {
+		if (null != result && result.equalsIgnoreCase("pong")) {
 			// REDIS connection is working - now to test if APIs are workings
 			boolean isAPIRunning = testAIDROutputAPI("fetch");
 			if (isAPIRunning) { 
