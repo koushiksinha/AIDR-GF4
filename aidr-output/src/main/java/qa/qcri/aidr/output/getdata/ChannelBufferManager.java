@@ -269,11 +269,7 @@ public class ChannelBufferManager {
 				for (int i = 0;i < Math.min(msgCount,tempList.size());i++) {
 					// By virtue of FIFO and serial buffering of messages, messages from same channel as
 					// well as different channels are guaranteed to have different time-stamps. 
-					System.out.println("\nchannel: " + temp.getChannelName() + ", last add time: + " + temp.getLastAddTime());
-					System.out.println(tempList.get(i));
-					
 					if (temp.getLastAddTime() > currentLatestTime) {
-						System.out.println("Added another recent tweet\n\n");
 						currentLatestTime = temp.getLastAddTime();
 						dataSet.put(temp.getLastAddTime(), tempList.get(i));		// older messages with higher timestamp/key-value
 					}
@@ -281,12 +277,13 @@ public class ChannelBufferManager {
 				tempList.clear();
 			}
 		}
+		// We need to send msgCount number of messages from all active buffers
+		// since we do not know which ones will be rejected, based on the 
+		// rejectNullFlag setting used in the output handler.
 		final List<String> msgList = new ArrayList<String>();; 
 		if (!dataSet.isEmpty()) {
-			msgList.addAll(dataSet.descendingMap().values());
-			for (String e: msgList) {
-				System.out.println("MESSAGE ID: " + e + "\n\n");
-			}
+			//msgList.addAll(dataSet.descendingMap().values());
+			msgList.addAll(dataSet.values());		// inversion will happen in client output handler
 			dataSet.clear();
 			dataSet = null;
 		}

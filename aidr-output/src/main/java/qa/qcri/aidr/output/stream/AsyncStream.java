@@ -37,7 +37,7 @@ public class AsyncStream implements ServletContextListener {
 	private static final String CHANNEL_REG_EX = "aidr_predict.*";
 	private static final String CHANNEL_PREFIX_CODE = "aidr_predict.";
 
-	private static final boolean rejectNullFlag = false;		
+	private static final boolean rejectNullFlag = true;		
 
 	private static final String redisHost = "localhost";		// Current assumption: REDIS running on same m/c
 	private static final int redisPort = 6379;					

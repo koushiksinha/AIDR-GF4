@@ -47,9 +47,9 @@ public class JedisConnectionObject {
 		synchronized (allotedJedis) {
 			if (null == poolConfig) {
 				poolConfig = new JedisPoolConfig();
-				poolConfig.setMaxActive(30);
-				poolConfig.setMaxIdle(5);
-				poolConfig.setMinIdle(1);
+				poolConfig.setMaxActive(200);
+				poolConfig.setMaxIdle(50);
+				poolConfig.setMinIdle(5);
 				poolConfig.setTestWhileIdle(true);
 				poolConfig.setTestOnBorrow(true);
 				poolConfig.setTestOnReturn(true);
@@ -112,11 +112,9 @@ public class JedisConnectionObject {
 			}
 			if (subscriberJedis != null) {
 				allotedJedis.put(subscriberJedis, false);		// initially nothing assigned
-				this.notifyAll();
 				return subscriberJedis;
 			}
 		}
-		this.notifyAll();
 		return null;
 	}
 
