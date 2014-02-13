@@ -7,6 +7,8 @@ package qa.qcri.aidr.collector.api;
 import com.google.gson.Gson;
 
 
+
+
 //import com.sun.jersey.api.client.Client;
 //import com.sun.jersey.api.client.ClientResponse;
 //import com.sun.jersey.api.client.WebResource;
@@ -29,6 +31,8 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.glassfish.jersey.jackson.JacksonFeature;
+
 import qa.qcri.aidr.collector.beans.CollectionTask;
 import qa.qcri.aidr.collector.beans.CollectorStatus;
 import qa.qcri.aidr.collector.utils.Config;
@@ -39,13 +43,13 @@ import qa.qcri.aidr.collector.utils.GenericCache;
  *
  * @author Imran
  */
-@Path("manage/")
+@Path("/manage")
 public class CollectorManageResource {
 
     @Context
     private UriInfo context;
     //private Client client = new Client();	// gf 3 way
-    private Client client = ClientBuilder.newClient();
+    //private Client client = ClientBuilder.newClient();
     
     /**
      * Creates a new instance of FetcherManageResource
@@ -123,7 +127,7 @@ public class CollectorManageResource {
     }
 
     private String runCollection(CollectionTask collection) {
-
+    	Client client = ClientBuilder.newBuilder().register(JacksonFeature.class).build();
         try {
             //WebResource webResource = client.resource(Config.FETCHER_REST_URI + "/twitter/start");
         	WebTarget webResource = client.target(Config.FETCHER_REST_URI + "/twitter/start");
@@ -132,10 +136,11 @@ public class CollectorManageResource {
             //		  .accept(MediaType.APPLICATION_JSON)
             //        .post(ClientResponse.class, gson.toJson(collection));
             Response clientResponse = webResource.request(MediaType.APPLICATION_JSON)
-            							.post(Entity.json(gson.toJson(collection)));
+            							.post(Entity.json(gson.toJson(collection)), Response.class);
             
             //String jsonResponse = clientResponse.getEntity(String.class);
-            String jsonResponse = (String) clientResponse.getEntity();
+            String jsonResponse = clientResponse.readEntity(String.class);
+            
             System.out.println("Fetcher Response: " + jsonResponse);
             return jsonResponse;
         } catch (Exception e) {

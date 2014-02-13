@@ -186,6 +186,7 @@ public class CollectionController extends BaseController{
 	public Map<String,Object> start(@RequestParam Integer id) throws Exception {
         try {
             UserEntity userEntity = getAuthenticatedUser();
+            logger.info("id = " + id + ", user entity: " + userEntity.getUserName() + ", id = " + userEntity.getId());
             if (userEntity != null) {
                 AidrCollection collection = collectionService.start(id, userEntity.getId());
                 AidrCollectionTotalDTO dto = convertAidrCollectionToDTO(collection);

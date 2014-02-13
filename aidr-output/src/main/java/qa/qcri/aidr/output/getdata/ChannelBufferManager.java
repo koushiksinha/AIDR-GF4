@@ -87,7 +87,9 @@ public class ChannelBufferManager {
 		logger.info("[ChannelBufferManager] Initializing channel buffer manager.");
 
 		bufferSize = -1;
-		executorServicePool = Executors.newFixedThreadPool(200);		// max number of threads
+		executorServicePool = Executors.newCachedThreadPool();	//Executors.newFixedThreadPool(10);		// max number of threads
+		logger.info("Create thread pool: " + executorServicePool);
+
 		jedisConn = new JedisConnectionObject(redisHost, redisPort);
 		try {
 			subscriberJedis = jedisConn.getJedisResource();
@@ -219,11 +221,13 @@ public class ChannelBufferManager {
 	}
 
 	public void deleteAllChannelBuffers() {
-		for (String channelId: ChannelBufferManager.subscribedChannels.keySet()) {
-			ChannelBufferManager.subscribedChannels.get(channelId).deleteBuffer();
-			ChannelBufferManager.subscribedChannels.remove(channelId);
+		if (ChannelBufferManager.subscribedChannels != null) {
+			for (String channelId: ChannelBufferManager.subscribedChannels.keySet()) {
+				ChannelBufferManager.subscribedChannels.get(channelId).deleteBuffer();
+				ChannelBufferManager.subscribedChannels.remove(channelId);
+			}
+			ChannelBufferManager.subscribedChannels.clear();
 		}
-		ChannelBufferManager.subscribedChannels.clear();
 	}
 
 	/** 
@@ -258,20 +262,28 @@ public class ChannelBufferManager {
 		final List<ChannelBuffer>cbList = new ArrayList<ChannelBuffer>();
 
 		cbList.addAll(ChannelBufferManager.subscribedChannels.values());
+		long currentLatestTime = -1;
 		for (ChannelBuffer temp: cbList) {
 			final List<String> tempList = temp.getLIFOMessages(msgCount);		// reverse-chronologically ordered list
 			if (!tempList.isEmpty()) {
 				for (int i = 0;i < Math.min(msgCount,tempList.size());i++) {
 					// By virtue of FIFO and serial buffering of messages, messages from same channel as
 					// well as different channels are guaranteed to have different time-stamps. 
-					dataSet.put(temp.getLastAddTime()+i, tempList.get(i));		// older messages with higher timestamp/key-value
+					if (temp.getLastAddTime() > currentLatestTime) {
+						currentLatestTime = temp.getLastAddTime();
+						dataSet.put(temp.getLastAddTime(), tempList.get(i));		// older messages with higher timestamp/key-value
+					}
 				}
 				tempList.clear();
 			}
 		}
+		// We need to send msgCount number of messages from all active buffers
+		// since we do not know which ones will be rejected, based on the 
+		// rejectNullFlag setting used in the output handler.
 		final List<String> msgList = new ArrayList<String>();; 
 		if (!dataSet.isEmpty()) {
-			msgList.addAll(dataSet.descendingMap().values());
+			//msgList.addAll(dataSet.descendingMap().values());
+			msgList.addAll(dataSet.values());		// inversion will happen in client output handler
 			dataSet.clear();
 			dataSet = null;
 		}
@@ -308,7 +320,9 @@ public class ChannelBufferManager {
 		} catch (JedisConnectionException e) {
 			logger.info("[stopSubscription] Connection to REDIS seems to be lost!");
 		}
-		if (jedisConn != null && aidrSubscriber.getSubscribedChannels() == 0) jedisConn.returnJedis(subscriberJedis);
+		if (jedisConn != null && aidrSubscriber != null && aidrSubscriber.getSubscribedChannels() == 0) 
+			jedisConn.returnJedis(subscriberJedis);
+		this.notifyAll();
 	}
 
 	public void close() {

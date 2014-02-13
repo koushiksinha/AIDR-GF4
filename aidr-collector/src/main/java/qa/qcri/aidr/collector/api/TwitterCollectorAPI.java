@@ -32,6 +32,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.apache.commons.lang.StringUtils;
+import org.glassfish.jersey.jackson.JacksonFeature;
 
 import qa.qcri.aidr.collector.collectors.TwitterStreamTracker;
 import qa.qcri.aidr.collector.utils.GenericCache;
@@ -47,14 +48,14 @@ import twitter4j.conf.ConfigurationBuilder;
  *
  * @author Imran
  */
-@Path("twitter/")
+@Path("/twitter")
 public class TwitterCollectorAPI extends Loggable {
 
 	@Context
 	private UriInfo context;
 
 	//private Client client = new Client();		// gf 3 way
-	private Client client = ClientBuilder.newClient();
+	//private Client client = ClientBuilder.newClient();
 
 	public TwitterCollectorAPI() {
 	}
@@ -64,8 +65,9 @@ public class TwitterCollectorAPI extends Loggable {
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Path("/start")
 	public Response startTask(CollectionTask collectionTask) {
+		System.out.println("Start collector services...");
 		ResponseWrapper response = new ResponseWrapper();
-
+		
 		//check if all twitter specific information is available in the request
 		if (!collectionTask.isTwitterInfoPresent()) {
 			response.setMessage("One or more Twitter authentication token(s) are missing.");
@@ -89,6 +91,7 @@ public class TwitterCollectorAPI extends Loggable {
 		.setOAuthAccessTokenSecret(collectionTask.getAccessTokenSecret());
 
 		//check if a task is already running with same configutations
+		System.out.println("Checking OAuth");
 		if (GenericCache.getInstance().isTwtConfigExists(collectionTask)) {
 			response.setMessage("Provided OAuth configurations already in use. Please stop this collection and then start again.");
 			response.setStatusCode(Config.STATUS_CODE_COLLECTION_ERROR);
@@ -98,6 +101,7 @@ public class TwitterCollectorAPI extends Loggable {
 		String collectionCode = collectionTask.getCollectionCode();
 
 		//building filter for filtering twitter stream
+		System.out.println("Building twitter query string");
 		TwitterStreamQueryBuilder queryBuilder = null;
 		try {
 			String langFilter = StringUtils.isNotEmpty(collectionTask.getLanguageFilter()) ? collectionTask.getLanguageFilter() : Config.LANGUAGE_ALLOWED_ALL;
@@ -108,7 +112,8 @@ public class TwitterCollectorAPI extends Loggable {
 			response.setStatusCode(Config.STATUS_CODE_COLLECTION_ERROR);
 			return Response.ok(response).build();
 		}
-
+		
+		System.out.println("Initializing Collection");
 		collectionTask.setStatusCode(Config.STATUS_CODE_COLLECTION_INITIALIZING);
 		TwitterStreamTracker tracker = null;
 		try {
@@ -117,12 +122,13 @@ public class TwitterCollectorAPI extends Loggable {
 			Logger.getLogger(TwitterCollectorAPI.class.getName()).log(Level.SEVERE, null, ex);
 		}
 
-		if (Config.DEFAULT_PERSISTER_ENABLED){
+		/*if (Config.DEFAULT_PERSISTER_ENABLED){
 			startCollectorPersister(collectionCode);
 			startTaggerPersister(collectionCode);
-		}
+		}*/
 
 		//preparing callback response
+		System.out.println("Preparing callback response");
 		String msg = "Initializing Twitter stream tracking. It Will be tracking: " + collectionTask.getToTrack()
 				+ " Following: " + queryBuilder.getToFollow() + " Geo: " + queryBuilder.getGeoLocation();
 		log(LOG_LEVEL.INFO, msg);
@@ -234,7 +240,7 @@ public class TwitterCollectorAPI extends Loggable {
 	}
 
 	public void startCollectorPersister(String collectionCode){
-
+		Client client = ClientBuilder.newBuilder().register(JacksonFeature.class).build();
 		try{
 			//WebResource webResource = client.resource(Config.PERSISTER_REST_URI + "persister/start?file=" 
 			//        + URLEncoder.encode(Config.DEFAULT_PERSISTER_FILE_LOCATION) 
@@ -248,7 +254,8 @@ public class TwitterCollectorAPI extends Loggable {
 			Response clientResponse = webResource.request(MediaType.APPLICATION_JSON).get();
 
 			//String jsonResponse = clientResponse.getEntity(String.class);
-			String jsonResponse = (String) clientResponse.getEntity();    
+			String jsonResponse = clientResponse.readEntity(String.class);
+			
 			System.out.println("Collector persister response: " + jsonResponse );
 		}catch(RuntimeException e){
 
@@ -260,6 +267,7 @@ public class TwitterCollectorAPI extends Loggable {
 	}
 
 	public void stopCollectorPersister(String collectionCode) {
+		Client client = ClientBuilder.newBuilder().register(JacksonFeature.class).build();
 		try{
 			//WebResource webResource = client.resource(Config.PERSISTER_REST_URI + "persister/stop?collectionCode=" + URLEncoder.encode(collectionCode));
 			WebTarget webResource = client.target(Config.PERSISTER_REST_URI + 
@@ -270,7 +278,8 @@ public class TwitterCollectorAPI extends Loggable {
 			Response clientResponse = webResource.request(MediaType.APPLICATION_JSON).get();
 
 			//String jsonResponse = clientResponse.getEntity(String.class);
-			String jsonResponse = (String) clientResponse.getEntity(); 
+			String jsonResponse = clientResponse.readEntity(String.class);
+			
 			System.out.println("Collector persister response: " + jsonResponse );
 		}catch(RuntimeException e){
 			System.out.println("Could not stop persister. Is persister running?");   
@@ -281,7 +290,7 @@ public class TwitterCollectorAPI extends Loggable {
 	}
 
 	public void startTaggerPersister(String collectionCode){
-
+		Client client = ClientBuilder.newBuilder().register(JacksonFeature.class).build();
 		try{
 			//WebResource webResource = client.resource(Config.PERSISTER_REST_URI + "taggerPersister/start?file=" 
 			//        + URLEncoder.encode(Config.DEFAULT_PERSISTER_FILE_LOCATION) 
@@ -295,7 +304,8 @@ public class TwitterCollectorAPI extends Loggable {
 			Response clientResponse = webResource.request(MediaType.APPLICATION_JSON).get();
 
 			//String jsonResponse = clientResponse.getEntity(String.class);
-			String jsonResponse = (String) clientResponse.getEntity(); 
+			String jsonResponse = clientResponse.readEntity(String.class);
+			
 			System.out.println("Tagger persister response: " + jsonResponse );
 		}catch(RuntimeException e){
 
@@ -307,6 +317,7 @@ public class TwitterCollectorAPI extends Loggable {
 	}
 
 	public void stopTaggerPersister(String collectionCode){
+		Client client = ClientBuilder.newBuilder().register(JacksonFeature.class).build();
 		try{
 			//WebResource webResource = client.resource(Config.PERSISTER_REST_URI + "taggerPersister/stop?collectionCode=" + URLEncoder.encode(collectionCode));
 			WebTarget webResource = client.target(Config.PERSISTER_REST_URI + 
@@ -316,8 +327,9 @@ public class TwitterCollectorAPI extends Loggable {
 			//				.accept(MediaType.APPLICATION_JSON).get(ClientResponse.class);
 			Response clientResponse = webResource.request(MediaType.APPLICATION_JSON).get();
 
-			//String jsonResponse = clientResponse.getEntity(String.class);
-			String jsonResponse = (String) clientResponse.getEntity(); 
+			//String jsonResponse = clientResponse.getEntity(String.class); 
+			String jsonResponse = clientResponse.readEntity(String.class);
+			
 			System.out.println("Tagger persister response: " + jsonResponse );
 		}catch(RuntimeException e){
 			System.out.println("Could not stop persister. Is persister running?");   

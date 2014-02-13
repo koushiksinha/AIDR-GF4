@@ -8,6 +8,8 @@ import qa.qcri.aidr.manager.service.CollectionLogService;
 
 
 
+
+
 //import com.sun.jersey.api.client.Client;		// gf 3 way
 //import com.sun.jersey.api.client.ClientResponse;
 //import com.sun.jersey.api.client.WebResource;
@@ -32,6 +34,7 @@ public class CollectionLogServiceImpl implements CollectionLogService {
 
     private Logger logger = Logger.getLogger(getClass());
 
+    // gf 3 way - disable @AutoWired since Client API has changed
     //@Autowired
     private Client client = ClientBuilder.newClient();;
 
@@ -98,7 +101,8 @@ public class CollectionLogServiceImpl implements CollectionLogService {
             Response clientResponse = webResource.request(MediaType.TEXT_PLAIN).get();
             
             //String jsonResponse = clientResponse.getEntity(String.class);
-            String jsonResponse = (String) clientResponse.getEntity();    
+            String jsonResponse = clientResponse.readEntity(String.class);
+            
             if (jsonResponse != null && "http".equals(jsonResponse.substring(0, 4))) {
                 return jsonResponse;
             } else {
@@ -119,7 +123,8 @@ public class CollectionLogServiceImpl implements CollectionLogService {
         	Response clientResponse = webResource.request(MediaType.TEXT_PLAIN).get();
         	
         	//String jsonResponse = clientResponse.getEntity(String.class);
-        	String jsonResponse = (String) clientResponse.getEntity(); 
+        	String jsonResponse = clientResponse.readEntity(String.class);
+        	
             if (jsonResponse != null && "http".equals(jsonResponse.substring(0, 4))) {
                 return jsonResponse;
             } else {

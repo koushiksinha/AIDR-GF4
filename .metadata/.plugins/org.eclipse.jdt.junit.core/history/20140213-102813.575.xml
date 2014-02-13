@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?><testrun name="CrisisServiceTest" project="aidr-trainer-api" tests="2" started="2" failures="0" errors="0" ignored="0">
+  <testsuite name="qa.qcri.aidr.trainer.api.service.CrisisServiceTest" time="3.306">
+    <testcase name="testFindAllTest" classname="qa.qcri.aidr.trainer.api.service.CrisisServiceTest" time="3.305"/>
+    <testcase name="testFindByCrisisID" classname="qa.qcri.aidr.trainer.api.service.CrisisServiceTest" time="0.001"/>
+  </testsuite>
+</testrun>

@@ -1,0 +1,13 @@
+/aidr-output-dummy
+/aidr-output-rest
+/.metadata
+/RemoteSystemsTempFiles
+/aidr-output/.gitignore
+/aidr-output/WebContent
+/dump.txt
+/config.txt
+/scd1-redis_monitor-output.txt
+*.bak
+*.zip
+*.tar*
+

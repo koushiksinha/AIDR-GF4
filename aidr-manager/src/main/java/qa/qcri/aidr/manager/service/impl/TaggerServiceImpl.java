@@ -9,6 +9,39 @@ import qa.qcri.aidr.manager.service.TaggerService;
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 //import com.sun.jersey.api.client.Client;		// gf 3 way
 //import com.sun.jersey.api.client.ClientResponse;
 //import com.sun.jersey.api.client.WebResource;
@@ -20,6 +53,7 @@ import javax.ws.rs.client.WebTarget;
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
+import org.glassfish.jersey.jackson.JacksonFeature;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -34,8 +68,8 @@ public class TaggerServiceImpl implements TaggerService {
 
     private Logger logger = Logger.getLogger(getClass());
 
-    //@Autowired
-    private Client client = ClientBuilder.newClient();;
+    //@Autowired // gf 3 way
+    //private Client client = ClientBuilder.newClient();
 
     @Value("${taggerMainUrl}")
     private String taggerMainUrl;
@@ -51,10 +85,12 @@ public class TaggerServiceImpl implements TaggerService {
 
     @Override
     public List<TaggerCrisisType> getAllCrisisTypes() throws AidrException{
-        try {
+    	Client client = ClientBuilder.newBuilder().register(JacksonFeature.class).build();
+    	try {
             /**
              * Rest call to Tagger
              */
+        	// gf 3 way
             //WebResource webResource = client.resource(taggerMainUrl + "/crisisType/all");
         	WebTarget webResource = client.target(taggerMainUrl + "/crisisType/all");
         	
@@ -65,7 +101,7 @@ public class TaggerServiceImpl implements TaggerService {
         	Response clientResponse = webResource.request(MediaType.APPLICATION_JSON).get();
         	
         	//String jsonResponse = clientResponse.getEntity(String.class);
-        	String jsonResponse = (String) clientResponse.getEntity(); 
+        	String jsonResponse = clientResponse.readEntity(String.class); 
 
             TaggerAllCrisesTypesResponse crisesTypesResponse = objectMapper.readValue(jsonResponse, TaggerAllCrisesTypesResponse.class);
             if (crisesTypesResponse.getCrisisTypes() != null) {
@@ -80,7 +116,8 @@ public class TaggerServiceImpl implements TaggerService {
 
     @Override
     public List<TaggerCrisis> getCrisesByUserId(Integer userId) throws AidrException{
-        try {
+    	Client client = ClientBuilder.newBuilder().register(JacksonFeature.class).build();
+    	try {
             /**
              * Rest call to Tagger
              */
@@ -94,7 +131,7 @@ public class TaggerServiceImpl implements TaggerService {
         	Response clientResponse = webResource.request(MediaType.APPLICATION_JSON).get();
         	
         	//String jsonResponse = clientResponse.getEntity(String.class);
-        	String jsonResponse = (String) clientResponse.getEntity(); 
+        	String jsonResponse = clientResponse.readEntity(String.class); 
 
             TaggerAllCrisesResponse taggerAllCrisesResponse = objectMapper.readValue(jsonResponse, TaggerAllCrisesResponse.class);
             if (taggerAllCrisesResponse.getCrisises() != null) {
@@ -109,7 +146,8 @@ public class TaggerServiceImpl implements TaggerService {
 
     @Override
     public String createNewCrises(TaggerCrisisRequest crisis) throws AidrException {
-        try {
+    	Client client = ClientBuilder.newBuilder().register(JacksonFeature.class).build();
+    	try {
             /**
              * Rest call to Tagger
              */
@@ -122,10 +160,10 @@ public class TaggerServiceImpl implements TaggerService {
             //        .accept(MediaType.APPLICATION_JSON)
             //        .post(ClientResponse.class, objectMapper.writeValueAsString(crisis));
             Response clientResponse = webResource.request(MediaType.APPLICATION_JSON)
-					.post(Entity.json(objectMapper.writeValueAsString(crisis)));
+					.post(Entity.json(objectMapper.writeValueAsString(crisis)), Response.class);
             
             //return clientResponse.getEntity(String.class);
-            return clientResponse.getEntity().toString();
+            return clientResponse.readEntity(String.class);
         } catch (Exception e) {
             throw new AidrException("Error while creating new crises in Tagger", e);
         }
@@ -133,7 +171,8 @@ public class TaggerServiceImpl implements TaggerService {
 
     @Override
     public Collection<TaggerAttribute> getAttributesForCrises(Integer crisisID, Integer userId) throws AidrException{
-        try {
+    	Client client = ClientBuilder.newBuilder().register(JacksonFeature.class).build();
+    	try {
             /**
              * Rest call to Tagger
              */
@@ -147,7 +186,7 @@ public class TaggerServiceImpl implements TaggerService {
         	Response clientResponse = webResource.request(MediaType.APPLICATION_JSON).get();
         	
         	//String jsonResponse = clientResponse.getEntity(String.class);
-        	String jsonResponse = (String) clientResponse.getEntity(); 
+        	String jsonResponse = clientResponse.readEntity(String.class); 
 
             TaggerCrisisAttributesResponse crisisAttributesResponse = objectMapper.readValue(jsonResponse, TaggerCrisisAttributesResponse.class);
             if (crisisAttributesResponse.getCrisisAttributes() != null) {
@@ -164,7 +203,8 @@ public class TaggerServiceImpl implements TaggerService {
 
     @Override
     public TaggerCrisisExist isCrisesExist(String code) throws AidrException{
-        try {
+    	Client client = ClientBuilder.newBuilder().register(JacksonFeature.class).build();
+    	try {
             //WebResource webResource = client.resource(taggerMainUrl + "/crisis/code/" + code);
         	WebTarget webResource = client.target(taggerMainUrl + "/crisis/code/" + code);
             
@@ -175,7 +215,8 @@ public class TaggerServiceImpl implements TaggerService {
             Response clientResponse = webResource.request(MediaType.APPLICATION_JSON).get();
             
             //String jsonResponse = clientResponse.getEntity(String.class);
-            String jsonResponse = (String) clientResponse.getEntity(); 
+            String jsonResponse = clientResponse.readEntity(String.class);
+            
             TaggerCrisisExist crisisExist = objectMapper.readValue(jsonResponse, TaggerCrisisExist.class);
             if (crisisExist.getCrisisId() != null) {
                 logger.info("Crises with the code " + code + " already exist in Tagger.");
@@ -190,7 +231,8 @@ public class TaggerServiceImpl implements TaggerService {
 
     @Override
     public Integer isUserExistsByUsername(String userName) throws AidrException {
-        try {
+    	Client client = ClientBuilder.newBuilder().register(JacksonFeature.class).build();
+    	try {
             /**
              * Rest call to Tagger
              */
@@ -205,7 +247,8 @@ public class TaggerServiceImpl implements TaggerService {
         	Response clientResponse = webResource.request(MediaType.APPLICATION_JSON).get();
         	
             //String jsonResponse = clientResponse.getEntity(String.class);
-        	String jsonResponse = (String) clientResponse.getEntity();
+        	String jsonResponse = clientResponse.readEntity(String.class);
+        	
             TaggerUser taggerUser = objectMapper.readValue(jsonResponse, TaggerUser.class);
             if (taggerUser != null && taggerUser.getUserID() != null) {
                 logger.info("User with the user name " + userName + " already exist in Tagger and has ID: " + taggerUser.getUserID());
@@ -220,7 +263,8 @@ public class TaggerServiceImpl implements TaggerService {
 
     @Override
     public Integer addNewUser(TaggerUser taggerUser) throws AidrException {
-        try {
+    	Client client = ClientBuilder.newBuilder().register(JacksonFeature.class).build();
+    	try {
             /**
              * Rest call to Tagger
              */
@@ -234,10 +278,11 @@ public class TaggerServiceImpl implements TaggerService {
             //        .accept(MediaType.APPLICATION_JSON)
             //        .post(ClientResponse.class, objectMapper.writeValueAsString(taggerUser));
             Response clientResponse = webResource.request(MediaType.APPLICATION_JSON)
-					.post(Entity.json(objectMapper.writeValueAsString(taggerUser)));
+					.post(Entity.json(objectMapper.writeValueAsString(taggerUser)), Response.class);
             
             //String jsonResponse = clientResponse.getEntity(String.class);
-            String jsonResponse = (String) clientResponse.getEntity();
+            String jsonResponse = clientResponse.readEntity(String.class);
+            
             TaggerUser createdUser = objectMapper.readValue(jsonResponse, TaggerUser.class);
             if (createdUser != null && createdUser.getUserID() != null) {
                 logger.info("User with ID " + createdUser.getUserID() + " was created in Tagger");
@@ -252,7 +297,8 @@ public class TaggerServiceImpl implements TaggerService {
 
     @Override
     public Integer addAttributeToCrisis(TaggerModelFamily modelFamily) throws AidrException {
-        try {
+    	Client client = ClientBuilder.newBuilder().register(JacksonFeature.class).build();
+    	try {
             /**
              * Rest call to Tagger
              */
@@ -266,10 +312,11 @@ public class TaggerServiceImpl implements TaggerService {
             //        .accept(MediaType.APPLICATION_JSON)
             //        .post(ClientResponse.class, objectMapper.writeValueAsString(modelFamily));
             Response clientResponse = webResource.request(MediaType.APPLICATION_JSON)
-					.post(Entity.json(objectMapper.writeValueAsString(modelFamily)));
+					.post(Entity.json(objectMapper.writeValueAsString(modelFamily)), Response.class);
             
             //String jsonResponse = clientResponse.getEntity(String.class);
-            String jsonResponse = (String) clientResponse.getEntity();
+            String jsonResponse = clientResponse.readEntity(String.class);
+            
             TaggerModelFamily createdModelFamily = objectMapper.readValue(jsonResponse, TaggerModelFamily.class);
             if (createdModelFamily != null && createdModelFamily.getModelFamilyID() != null) {
                 logger.info("Attribute was added to crises");
@@ -284,7 +331,8 @@ public class TaggerServiceImpl implements TaggerService {
 
     @Override
     public TaggerCrisis getCrisesByCode(String code) throws AidrException{
-        try {
+    	Client client = ClientBuilder.newBuilder().register(JacksonFeature.class).build();
+    	try {
             /**
              * Rest call to Tagger
              */
@@ -298,7 +346,8 @@ public class TaggerServiceImpl implements TaggerService {
         	Response clientResponse = webResource.request(MediaType.APPLICATION_JSON).get();
         	
             //String jsonResponse = clientResponse.getEntity(String.class);
-        	String jsonResponse = (String) clientResponse.getEntity();
+        	String jsonResponse = clientResponse.readEntity(String.class);
+        	
             TaggerCrisis crisis = objectMapper.readValue(jsonResponse, TaggerCrisis.class);
             if (crisis != null) {
                 logger.info("Tagger returned crisis with code" + crisis.getCode());
@@ -312,7 +361,8 @@ public class TaggerServiceImpl implements TaggerService {
 
     @Override
     public TaggerCrisis updateCode(TaggerCrisis crisis) throws AidrException{
-        try {
+    	Client client = ClientBuilder.newBuilder().register(JacksonFeature.class).build();
+    	try {
             /**
              * Rest call to Tagger
              */
@@ -324,10 +374,10 @@ public class TaggerServiceImpl implements TaggerService {
             //        .accept(MediaType.APPLICATION_JSON)
             //        .put(ClientResponse.class, objectMapper.writeValueAsString(crisis));
             Response clientResponse = webResource.request(MediaType.APPLICATION_JSON)
-					.put(Entity.json(objectMapper.writeValueAsString(crisis)));
+					.put(Entity.json(objectMapper.writeValueAsString(crisis)), Response.class);
             
             //String jsonResponse = clientResponse.getEntity(String.class);
-            String jsonResponse = (String) clientResponse.getEntity();
+            String jsonResponse = clientResponse.readEntity(String.class);
 
             TaggerCrisis updatedCrisis = objectMapper.readValue(jsonResponse, TaggerCrisis.class);
             if (updatedCrisis != null) {
@@ -342,7 +392,8 @@ public class TaggerServiceImpl implements TaggerService {
 
     @Override
     public List<TaggerModel> getModelsForCrisis(Integer crisisID) throws AidrException{
-        try {
+    	Client client = ClientBuilder.newBuilder().register(JacksonFeature.class).build();
+    	try {
             /**
              * Rest call to Tagger
              */
@@ -356,7 +407,8 @@ public class TaggerServiceImpl implements TaggerService {
         	Response clientResponse = webResource.request(MediaType.APPLICATION_JSON).get();
         	
         	//String jsonResponse = clientResponse.getEntity(String.class);
-        	String jsonResponse = (String) clientResponse.getEntity();
+        	String jsonResponse = clientResponse.readEntity(String.class);
+        	
             TaggerCrisisModelsResponse crisisModelsResponse = objectMapper.readValue(jsonResponse, TaggerCrisisModelsResponse.class);
             if (crisisModelsResponse.getModelWrapper() != null) {
                 logger.info("Tagger returned " + crisisModelsResponse.getModelWrapper().size() + " models for crises with ID " + crisisID);
@@ -370,7 +422,8 @@ public class TaggerServiceImpl implements TaggerService {
 
     @Override
     public TaggerAttribute createNewAttribute(TaggerAttribute attribute) throws AidrException {
-        try {
+    	Client client = ClientBuilder.newBuilder().register(JacksonFeature.class).build();
+    	try {
             /**
              * Rest call to Tagger
              */
@@ -384,10 +437,10 @@ public class TaggerServiceImpl implements TaggerService {
             //        .accept(MediaType.APPLICATION_JSON)
             //        .post(ClientResponse.class, objectMapper.writeValueAsString(attribute));
             Response clientResponse = webResource.request(MediaType.APPLICATION_JSON)
-					.post(Entity.json(objectMapper.writeValueAsString(attribute)));
+					.post(Entity.json(objectMapper.writeValueAsString(attribute)), Response.class);
             
             //String jsonResponse = clientResponse.getEntity(String.class);
-            String jsonResponse = (String) clientResponse.getEntity();
+            String jsonResponse = clientResponse.readEntity(String.class);
 
             TaggerAttribute response = objectMapper.readValue(jsonResponse, TaggerAttribute.class);
             if (response != null) {
@@ -402,7 +455,8 @@ public class TaggerServiceImpl implements TaggerService {
 
     @Override
     public TaggerAttribute getAttributeInfo(Integer id) throws AidrException {
-        try {
+    	Client client = ClientBuilder.newBuilder().register(JacksonFeature.class).build();
+    	try {
             /**
              * Rest call to Tagger
              */
@@ -417,7 +471,7 @@ public class TaggerServiceImpl implements TaggerService {
             Response clientResponse = webResource.request(MediaType.APPLICATION_JSON).get();
             
             //String jsonResponse = clientResponse.getEntity(String.class);
-            String jsonResponse = (String) clientResponse.getEntity();
+            String jsonResponse = clientResponse.readEntity(String.class);
             
             TaggerAttribute response = objectMapper.readValue(jsonResponse, TaggerAttribute.class);
             if (response != null) {
@@ -432,7 +486,8 @@ public class TaggerServiceImpl implements TaggerService {
 
     @Override
     public TaggerLabel getLabelInfo(Integer id) throws AidrException {
-        try {
+    	Client client = ClientBuilder.newBuilder().register(JacksonFeature.class).build();
+    	try {
             /**
              * Rest call to Tagger
              */
@@ -447,7 +502,7 @@ public class TaggerServiceImpl implements TaggerService {
             Response clientResponse = webResource.request(MediaType.APPLICATION_JSON).get();
             
             //String jsonResponse = clientResponse.getEntity(String.class);
-            String jsonResponse = (String) clientResponse.getEntity();
+            String jsonResponse = clientResponse.readEntity(String.class);
             
             TaggerLabel response = objectMapper.readValue(jsonResponse, TaggerLabel.class);
             if (response != null) {
@@ -462,7 +517,8 @@ public class TaggerServiceImpl implements TaggerService {
 
     @Override
     public boolean deleteAttribute(Integer id) throws AidrException {
-        try {
+    	Client client = ClientBuilder.newBuilder().register(JacksonFeature.class).build();
+    	try {
             /**
              * Rest call to Tagger
              */
@@ -478,7 +534,7 @@ public class TaggerServiceImpl implements TaggerService {
             Response clientResponse = webResource.request(MediaType.APPLICATION_JSON).delete();
             
             //String jsonResponse = clientResponse.getEntity(String.class);
-            String jsonResponse = (String) clientResponse.getEntity();
+            String jsonResponse = clientResponse.readEntity(String.class);
             
             TaggerStatusResponse response = objectMapper.readValue(jsonResponse, TaggerStatusResponse.class);
             if (response != null && response.getStatusCode() != null) {
@@ -497,7 +553,8 @@ public class TaggerServiceImpl implements TaggerService {
 
     @Override
     public boolean deleteTrainingExample(Integer id) throws AidrException {
-        try {
+    	Client client = ClientBuilder.newBuilder().register(JacksonFeature.class).build();
+    	try {
             /**
              * Rest call to Tagger
              */
@@ -513,7 +570,7 @@ public class TaggerServiceImpl implements TaggerService {
             Response clientResponse = webResource.request(MediaType.APPLICATION_JSON).delete();
             
             //String jsonResponse = clientResponse.getEntity(String.class);
-            String jsonResponse = (String) clientResponse.getEntity();
+            String jsonResponse = clientResponse.readEntity(String.class);
             
             TaggerStatusResponse response = objectMapper.readValue(jsonResponse, TaggerStatusResponse.class);
             if (response != null && response.getStatusCode() != null) {
@@ -532,7 +589,8 @@ public class TaggerServiceImpl implements TaggerService {
 
     @Override
     public boolean removeAttributeFromCrises(Integer modelFamilyID) throws AidrException {
-        try {
+    	Client client = ClientBuilder.newBuilder().register(JacksonFeature.class).build();
+    	try {
             /**
              * Rest call to Tagger
              */
@@ -548,7 +606,7 @@ public class TaggerServiceImpl implements TaggerService {
             Response clientResponse = webResource.request(MediaType.APPLICATION_JSON).delete();
             
             //String jsonResponse = clientResponse.getEntity(String.class);
-            String jsonResponse = (String) clientResponse.getEntity();
+            String jsonResponse = clientResponse.readEntity(String.class);
             
             TaggerStatusResponse response = objectMapper.readValue(jsonResponse, TaggerStatusResponse.class);
             if (response != null && response.getStatusCode() != null) {
@@ -567,7 +625,8 @@ public class TaggerServiceImpl implements TaggerService {
 
     @Override
     public TaggerAttribute updateAttribute(TaggerAttribute attribute) throws AidrException{
-        try {
+    	Client client = ClientBuilder.newBuilder().register(JacksonFeature.class).build();
+    	try {
             /**
              * Rest call to Tagger
              */
@@ -581,10 +640,10 @@ public class TaggerServiceImpl implements TaggerService {
             //        .accept(MediaType.APPLICATION_JSON)
             //        .put(ClientResponse.class, objectMapper.writeValueAsString(attribute));
             Response clientResponse = webResource.request(MediaType.APPLICATION_JSON)
-					.put(Entity.json(objectMapper.writeValueAsString(attribute)));
+					.put(Entity.json(objectMapper.writeValueAsString(attribute)), Response.class);
             
             //String jsonResponse = clientResponse.getEntity(String.class);
-            String jsonResponse = (String) clientResponse.getEntity();
+            String jsonResponse = clientResponse.readEntity(String.class);
 
             TaggerAttribute updatedAttribute = objectMapper.readValue(jsonResponse, TaggerAttribute.class);
             if (updatedAttribute != null) {
@@ -601,7 +660,8 @@ public class TaggerServiceImpl implements TaggerService {
 
     @Override
     public TaggerLabel updateLabel(TaggerLabelRequest label) throws AidrException{
-        try {
+    	Client client = ClientBuilder.newBuilder().register(JacksonFeature.class).build();
+    	try {
             /**
              * Rest call to Tagger
              */
@@ -615,10 +675,10 @@ public class TaggerServiceImpl implements TaggerService {
             //        .accept(MediaType.APPLICATION_JSON)
             //        .put(ClientResponse.class, objectMapper.writeValueAsString(label));
             Response clientResponse = webResource.request(MediaType.APPLICATION_JSON)
-					.put(Entity.json(objectMapper.writeValueAsString(label)));
+					.put(Entity.json(objectMapper.writeValueAsString(label)), Response.class);
             
             //String jsonResponse = clientResponse.getEntity(String.class);
-            String jsonResponse = (String) clientResponse.getEntity();
+            String jsonResponse = clientResponse.readEntity(String.class);
             
             TaggerLabel updatedLabel = objectMapper.readValue(jsonResponse, TaggerLabel.class);
             if (updatedLabel != null) {
@@ -635,7 +695,8 @@ public class TaggerServiceImpl implements TaggerService {
 
     @Override
     public TaggerLabel createNewLabel(TaggerLabelRequest label) throws AidrException {
-        try {
+    	Client client = ClientBuilder.newBuilder().register(JacksonFeature.class).build();
+    	try {
             /**
              * Rest call to Tagger
              */
@@ -649,10 +710,10 @@ public class TaggerServiceImpl implements TaggerService {
             //        .accept(MediaType.APPLICATION_JSON)
             //        .post(ClientResponse.class, objectMapper.writeValueAsString(label));
             Response clientResponse = webResource.request(MediaType.APPLICATION_JSON)
-					.post(Entity.json(objectMapper.writeValueAsString(label)));
+					.post(Entity.json(objectMapper.writeValueAsString(label)), Response.class);
             
             //String jsonResponse = clientResponse.getEntity(String.class);
-            String jsonResponse = (String) clientResponse.getEntity();
+            String jsonResponse = clientResponse.readEntity(String.class);
             
             TaggerLabel response = objectMapper.readValue(jsonResponse, TaggerLabel.class);
             if (response != null) {
@@ -667,7 +728,8 @@ public class TaggerServiceImpl implements TaggerService {
 
     @Override
     public TaggerAttribute attributeExists(String code) throws AidrException{
-        try {
+    	Client client = ClientBuilder.newBuilder().register(JacksonFeature.class).build();
+    	try {
             //WebResource webResource = client.resource(taggerMainUrl + "/attribute/code/" + code);
         	WebTarget webResource = client.target(taggerMainUrl + "/attribute/code/" + code);
         	
@@ -678,7 +740,7 @@ public class TaggerServiceImpl implements TaggerService {
         	Response clientResponse = webResource.request(MediaType.APPLICATION_JSON).get();
         	
         	//String jsonResponse = clientResponse.getEntity(String.class);
-        	String jsonResponse = (String) clientResponse.getEntity();
+        	String jsonResponse = clientResponse.readEntity(String.class);
         	
             TaggerAttribute attribute = objectMapper.readValue(jsonResponse, TaggerAttribute.class);
             if (attribute != null) {
@@ -699,7 +761,8 @@ public class TaggerServiceImpl implements TaggerService {
                                                                      Integer limit,
                                                                      String sortColumn,
                                                                      String sortDirection) throws AidrException{
-        try {
+    	Client client = ClientBuilder.newBuilder().register(JacksonFeature.class).build();
+    	try {
             //WebResource webResource = client.resource(taggerMainUrl + "/misc/getTrainingData?crisisID=" + crisisId
             //        + "&modelFamilyID=" + modelFamilyId
             //        + "&fromRecord=" + start
@@ -720,7 +783,7 @@ public class TaggerServiceImpl implements TaggerService {
         	Response clientResponse = webResource.request(MediaType.APPLICATION_JSON).get();
         	
         	//String jsonResponse = clientResponse.getEntity(String.class);
-        	String jsonResponse = (String) clientResponse.getEntity();
+        	String jsonResponse = clientResponse.readEntity(String.class);
 
             TrainingDataRequest trainingDataRequest = objectMapper.readValue(jsonResponse, TrainingDataRequest.class);
             if (trainingDataRequest != null && trainingDataRequest.getTrainingData() != null) {
@@ -737,7 +800,8 @@ public class TaggerServiceImpl implements TaggerService {
 
     @Override
     public String getAssignableTask(Integer id, String userName) throws AidrException {
-        try {
+    	Client client = ClientBuilder.newBuilder().register(JacksonFeature.class).build();
+    	try {
 //            taskBufferNumber currently always 1
             int taskBufferNumber = 1;
             //WebResource webResource = client.resource(crowdsourcingAPIMainUrl + "/taskbuffer/getassignabletask/" + userName + "/" + id + "/" + taskBufferNumber);
@@ -752,7 +816,8 @@ public class TaggerServiceImpl implements TaggerService {
             logger.info("getAssignableTask - clientResponse : " + clientResponse);
             
             //String jsonResponse = clientResponse.getEntity(String.class);
-            String jsonResponse = (String) clientResponse.getEntity();
+            String jsonResponse = clientResponse.readEntity(String.class);
+            
             logger.info("getAssignableTask - jsonResponse : " + jsonResponse);
 
             return jsonResponse;
@@ -763,7 +828,8 @@ public class TaggerServiceImpl implements TaggerService {
 
     @Override
     public String getTemplateStatus(String code) throws AidrException {
-        try {
+    	Client client = ClientBuilder.newBuilder().register(JacksonFeature.class).build();
+    	try {
             //WebResource webResource = client.resource(crowdsourcingAPIMainUrl + "/template/status/crisis/code/" + code);
         	WebTarget webResource = client.target(crowdsourcingAPIMainUrl + "/template/status/crisis/code/" + code);
         	
@@ -774,7 +840,8 @@ public class TaggerServiceImpl implements TaggerService {
         	logger.info("getTemplateStatus - clientResponse : " + clientResponse);
         	
             //String jsonResponse = clientResponse.getEntity(String.class);
-        	String jsonResponse = (String) clientResponse.getEntity();
+        	String jsonResponse = clientResponse.readEntity(String.class);
+        	
             logger.info("getTemplateStatus - jsonResponse : " + jsonResponse);
 
             return jsonResponse;
@@ -785,7 +852,8 @@ public class TaggerServiceImpl implements TaggerService {
 
     @Override
     public String skipTask(Integer id, String userName) throws AidrException {
-        try {
+    	Client client = ClientBuilder.newBuilder().register(JacksonFeature.class).build();
+    	try {
             //WebResource webResource = client.resource(crowdsourcingAPIMainUrl + "/taskassignment/revert/searchByDocUserName/" + userName + "/" + id);
         	WebTarget webResource = client.target(crowdsourcingAPIMainUrl 
         			+ "/taskassignment/revert/searchByDocUserName/" + userName + "/" + id);
@@ -798,7 +866,8 @@ public class TaggerServiceImpl implements TaggerService {
             logger.info("skipTask - clientResponse : " + clientResponse);
             
             //String jsonResponse = clientResponse.getEntity(String.class);
-            String jsonResponse = (String) clientResponse.getEntity();
+            String jsonResponse = clientResponse.readEntity(String.class);
+            
             logger.info("skipTask - jsonResponse : " + jsonResponse);
 
             return jsonResponse;
@@ -809,7 +878,8 @@ public class TaggerServiceImpl implements TaggerService {
 
     @Override
     public boolean saveTaskAnswer(List<TaskAnswer> taskAnswer) throws AidrException {
-        try {
+    	Client client = ClientBuilder.newBuilder().register(JacksonFeature.class).build();
+    	try {
             //WebResource webResource = client.resource(crowdsourcingAPIMainUrl + "/taskanswer/save");
         	WebTarget webResource = client.target(crowdsourcingAPIMainUrl + "/taskanswer/save");
             ObjectMapper objectMapper = new ObjectMapper();
@@ -819,7 +889,7 @@ public class TaggerServiceImpl implements TaggerService {
             //        .accept(MediaType.APPLICATION_JSON)
             //        .post(ClientResponse.class, objectMapper.writeValueAsString(taskAnswer));
             Response clientResponse = webResource.request(MediaType.APPLICATION_JSON)
-					.post(Entity.json(objectMapper.writeValueAsString(taskAnswer)));
+					.post(Entity.json(objectMapper.writeValueAsString(taskAnswer)), Response.class);
             logger.info("saveTaskAnswer - response status : " + clientResponse.getStatus());
 
             return clientResponse.getStatus() == 204;
@@ -830,7 +900,8 @@ public class TaggerServiceImpl implements TaggerService {
 
     @Override
     public String generateCSVLink(String code) throws AidrException {
-        try {
+    	Client client = ClientBuilder.newBuilder().build();
+    	try {
             //WebResource webResource = client.resource(persisterMainUrl + "/taggerPersister/genCSV?collectionCode=" + code + "&exportLimit=100000");
         	WebTarget webResource = client.target(persisterMainUrl + 
         			"/taggerPersister/genCSV?collectionCode=" + code + "&exportLimit=100000");
@@ -840,7 +911,7 @@ public class TaggerServiceImpl implements TaggerService {
         	Response clientResponse = webResource.request(MediaType.TEXT_PLAIN).get();
         	
         	//String jsonResponse = clientResponse.getEntity(String.class);
-        	String jsonResponse = (String) clientResponse.getEntity();
+        	String jsonResponse = clientResponse.readEntity(String.class);
         	
             if (jsonResponse != null && "http".equals(jsonResponse.substring(0, 4))) {
                 return jsonResponse;
@@ -854,7 +925,8 @@ public class TaggerServiceImpl implements TaggerService {
 
     @Override
     public String generateTweetIdsLink(String code) throws AidrException {
-        try {
+    	Client client = ClientBuilder.newBuilder().register(JacksonFeature.class).build();
+    	try {
             //WebResource webResource = client.resource(persisterMainUrl + "/taggerPersister/genTweetIds?collectionCode=" + code);
         	WebTarget webResource = client.target(persisterMainUrl + "/taggerPersister/genTweetIds?collectionCode=" + code);
         	
@@ -863,7 +935,7 @@ public class TaggerServiceImpl implements TaggerService {
         	Response clientResponse = webResource.request(MediaType.TEXT_PLAIN).get();
             
         	//String jsonResponse = clientResponse.getEntity(String.class);
-        	String jsonResponse = (String) clientResponse.getEntity();
+        	String jsonResponse = clientResponse.readEntity(String.class);
 
             if (jsonResponse != null && "http".equals(jsonResponse.substring(0, 4))) {
                 return jsonResponse;
@@ -877,7 +949,8 @@ public class TaggerServiceImpl implements TaggerService {
 
     @Override
     public ModelHistoryWrapper getModelHistoryByModelFamilyID(Integer start, Integer limit, Integer id) throws AidrException {
-        try {
+    	Client client = ClientBuilder.newBuilder().register(JacksonFeature.class).build();
+    	try {
             //WebResource webResource = client.resource(taggerMainUrl + "/model/modelFamily/" + id
             //        + "?start=" + start
             //        + "&limit=" + limit);
@@ -892,7 +965,7 @@ public class TaggerServiceImpl implements TaggerService {
             Response clientResponse = webResource.request(MediaType.APPLICATION_JSON).get();
             
             //String jsonResponse = clientResponse.getEntity(String.class);
-            String jsonResponse = (String) clientResponse.getEntity();
+            String jsonResponse = clientResponse.readEntity(String.class);
             
             ModelHistoryWrapper modelHistoryWrapper = objectMapper.readValue(jsonResponse, ModelHistoryWrapper.class);
             return modelHistoryWrapper;
@@ -903,7 +976,8 @@ public class TaggerServiceImpl implements TaggerService {
 
     @Override
     public List<TaggerModelNominalLabel> getAllLabelsForModel(Integer modelID) throws AidrException{
-        try {
+    	Client client = ClientBuilder.newBuilder().register(JacksonFeature.class).build();
+    	try {
             /**
              * Rest call to Tagger
              */
@@ -917,7 +991,7 @@ public class TaggerServiceImpl implements TaggerService {
         	Response clientResponse = webResource.request(MediaType.APPLICATION_JSON).get();
         	
         	//String jsonResponse = clientResponse.getEntity(String.class);
-        	String jsonResponse = (String) clientResponse.getEntity();
+        	String jsonResponse = clientResponse.readEntity(String.class);
 
             TaggerModelLabelsResponse modelLabelsResponse = objectMapper.readValue(jsonResponse, TaggerModelLabelsResponse.class);
             if (modelLabelsResponse.getModelNominalLabelsDTO() != null) {
@@ -931,7 +1005,8 @@ public class TaggerServiceImpl implements TaggerService {
     }
 
     public Map<String, Integer> getTaggersForCollections(List<String> collectionCodes) throws AidrException {
-        try {
+    	Client client = ClientBuilder.newBuilder().register(JacksonFeature.class).build();
+    	try {
             /**
              * Rest call to Tagger
              */
@@ -944,10 +1019,10 @@ public class TaggerServiceImpl implements TaggerService {
             //        .accept(MediaType.APPLICATION_JSON)
             //        .post(ClientResponse.class, objectMapper.writeValueAsString(new TaggersForCollectionsRequest(collectionCodes)));
         	Response clientResponse = webResource.request(MediaType.APPLICATION_JSON)
-					.post(Entity.json(objectMapper.writeValueAsString(new TaggersForCollectionsRequest(collectionCodes))));
+					.post(Entity.json(objectMapper.writeValueAsString(new TaggersForCollectionsRequest(collectionCodes))), Response.class);
         	
             //String jsonResponse = clientResponse.getEntity(String.class);
-        	String jsonResponse = (String) clientResponse.getEntity();
+        	String jsonResponse = clientResponse.readEntity(String.class);
         	
             TaggersForCollectionsResponse taggersResponse = objectMapper.readValue(jsonResponse, TaggersForCollectionsResponse.class);
             if (taggersResponse != null && !taggersResponse.getTaggersForCodes().isEmpty()) {
@@ -966,7 +1041,8 @@ public class TaggerServiceImpl implements TaggerService {
 
     @Override
     public boolean pingTagger() throws AidrException{
-        try {
+    	Client client = ClientBuilder.newBuilder().register(JacksonFeature.class).build();
+    	try {
             //WebResource webResource = client.resource(taggerMainUrl + "/misc/ping");
         	WebTarget webResource = client.target(taggerMainUrl + "/misc/ping");
         	
@@ -977,7 +1053,7 @@ public class TaggerServiceImpl implements TaggerService {
             Response clientResponse = webResource.request(MediaType.APPLICATION_JSON).get();
             
             //String jsonResponse = clientResponse.getEntity(String.class);
-            String jsonResponse = (String) clientResponse.getEntity();
+            String jsonResponse = clientResponse.readEntity(String.class);
 
             PingResponse pingResponse = objectMapper.readValue(jsonResponse, PingResponse.class);
             if (pingResponse != null && "RUNNING".equals(pingResponse.getStatus())) {
@@ -992,7 +1068,8 @@ public class TaggerServiceImpl implements TaggerService {
 
     @Override
     public boolean pingAIDROutput() throws AidrException{
-        try {
+    	Client client = ClientBuilder.newBuilder().register(JacksonFeature.class).build();
+    	try {
             //WebResource webResource = client.resource(outputAPIMainUrl + "/manage/ping");
         	WebTarget webResource = client.target(outputAPIMainUrl + "/manage/ping");
         	
@@ -1003,7 +1080,7 @@ public class TaggerServiceImpl implements TaggerService {
 			Response clientResponse = webResource.request(MediaType.APPLICATION_JSON).get();
             
             //String jsonResponse = clientResponse.getEntity(String.class);
-			String jsonResponse = (String) clientResponse.getEntity();
+			String jsonResponse = clientResponse.readEntity(String.class);
 			
             PingResponse pingResponse = objectMapper.readValue(jsonResponse, PingResponse.class);
             if (pingResponse != null && "RUNNING".equals(pingResponse.getStatus())) {
