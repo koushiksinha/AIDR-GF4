@@ -5,3 +5,4 @@
 .testJsonData
 /WebContent
 *.bak
+wget*
