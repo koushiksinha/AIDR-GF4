@@ -8,12 +8,16 @@ import qa.qcri.aidr.predictui.dto.*;
 
 import java.io.Serializable;
 import java.util.List;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
-import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
+
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
+//import org.codehaus.jackson.map.annotate.JsonSerialize;
+//import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 import qa.qcri.aidr.predictui.entities.AidrCollection;
 import qa.qcri.aidr.predictui.entities.Crisis;
 import qa.qcri.aidr.predictui.entities.Document;
@@ -50,7 +54,8 @@ import qa.qcri.aidr.predictui.entities.NominalLabel;
     "total"
 })
 @XmlRootElement(name = "responseWrapper")
-@JsonSerialize(include = Inclusion.NON_DEFAULT)
+//@JsonSerialize(include = Inclusion.NON_DEFAULT)
+@JsonSerialize(include=JsonSerialize.Inclusion.NON_DEFAULT)
 public class ResponseWrapper implements Serializable {
 
     protected String statusCode;

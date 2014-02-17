@@ -122,10 +122,10 @@ public class TwitterCollectorAPI extends Loggable {
 			Logger.getLogger(TwitterCollectorAPI.class.getName()).log(Level.SEVERE, null, ex);
 		}
 
-		/*if (Config.DEFAULT_PERSISTER_ENABLED){
+		if (Config.DEFAULT_PERSISTER_ENABLED){
 			startCollectorPersister(collectionCode);
 			startTaggerPersister(collectionCode);
-		}*/
+		}
 
 		//preparing callback response
 		System.out.println("Preparing callback response");

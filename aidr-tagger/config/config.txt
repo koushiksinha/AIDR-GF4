@@ -3,7 +3,7 @@
 # ################################ #
 
 # MySQL connection details
-mysql_path=jdbc:mysql://localhost/aidr_predict?useUnicode=true&characterEncoding=UTF-8
+mysql_path=jdbc:mysql://localhost:3306/aidr_predict?useUnicode=true&characterEncoding=UTF-8
 mysql_username=root
 mysql_password=admin
 

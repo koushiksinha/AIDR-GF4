@@ -43,7 +43,8 @@ public class Persister4CollectorAPI {
     @Consumes("application/json")
     @Path("/start")
   public Response startPersister(@QueryParam("file") String fileLocation, @QueryParam("collectionCode") String collectionCode) {
-        String response="";
+        System.out.println("In persister start");
+    	String response="";
         try{
             fileLocation = Config.DEFAULT_PERSISTER_FILE_PATH; //OVERRIDING PATH RECEIVED FROM EXTERNAL REQUEST
         if (StringUtils.isNotEmpty(fileLocation) && StringUtils.isNotEmpty(collectionCode)) {
@@ -91,7 +92,8 @@ public class Persister4CollectorAPI {
     @Produces(MediaType.TEXT_HTML)
     @Path("/genCSV")
     public Response generateCSVFromLastestJSON(@QueryParam("collectionCode") String collectionCode) throws UnknownHostException {
-        JsonDeserializer jsonD = new JsonDeserializer();
+    	System.out.println("In persister genCSV");
+    	JsonDeserializer jsonD = new JsonDeserializer();
         String fileName = jsonD.generateJSON2CSV_100K_BasedOnTweetCount(collectionCode);
         fileName = Config.SCD1_URL + collectionCode+"/"+fileName;
         return Response.ok(fileName).build();
@@ -101,7 +103,8 @@ public class Persister4CollectorAPI {
     @Produces("application/json")
     @Path("/genTweetIds")
     public Response generateTweetsIDSCSVFromAllJSON(@QueryParam("collectionCode") String collectionCode) throws UnknownHostException {
-        JsonDeserializer jsonD = new JsonDeserializer();
+    	System.out.println("In persister genTweetIds");
+    	JsonDeserializer jsonD = new JsonDeserializer();
         String fileName = jsonD.generateJson2TweetIdsCSV(collectionCode);
         fileName = Config.SCD1_URL + collectionCode+"/"+fileName;
         return Response.ok(fileName).build();

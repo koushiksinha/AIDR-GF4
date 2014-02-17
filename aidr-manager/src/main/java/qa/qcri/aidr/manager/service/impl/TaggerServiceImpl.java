@@ -42,6 +42,7 @@ import qa.qcri.aidr.manager.service.TaggerService;
 
 
 
+
 //import com.sun.jersey.api.client.Client;		// gf 3 way
 //import com.sun.jersey.api.client.ClientResponse;
 //import com.sun.jersey.api.client.WebResource;
@@ -53,6 +54,7 @@ import javax.ws.rs.client.WebTarget;
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
+
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -207,15 +209,16 @@ public class TaggerServiceImpl implements TaggerService {
     	try {
             //WebResource webResource = client.resource(taggerMainUrl + "/crisis/code/" + code);
         	WebTarget webResource = client.target(taggerMainUrl + "/crisis/code/" + code);
-            
+        	System.out.println("webResource: " + webResource);
             ObjectMapper objectMapper = new ObjectMapper();
             //ClientResponse clientResponse = webResource.type(MediaType.APPLICATION_JSON)
             //        .accept(MediaType.APPLICATION_JSON)
             //        .get(ClientResponse.class);
             Response clientResponse = webResource.request(MediaType.APPLICATION_JSON).get();
-            
+            System.out.println("clientResponse: " + clientResponse);
             //String jsonResponse = clientResponse.getEntity(String.class);
             String jsonResponse = clientResponse.readEntity(String.class);
+            System.out.println("jsonResponse: " + jsonResponse);
             
             TaggerCrisisExist crisisExist = objectMapper.readValue(jsonResponse, TaggerCrisisExist.class);
             if (crisisExist.getCrisisId() != null) {

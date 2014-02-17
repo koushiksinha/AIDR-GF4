@@ -50,6 +50,7 @@ public class TaggerController extends BaseController {
         logger.info("Getting crises from Tagger by User");
         try {
             String userName = getAuthenticatedUserName();
+            System.out.println("userName:" + userName);
             Integer taggerUserId = taggerService.isUserExistsByUsername(userName);
             if (taggerUserId == null) {
                 TaggerUser taggerUser = new TaggerUser(userName, "normal");

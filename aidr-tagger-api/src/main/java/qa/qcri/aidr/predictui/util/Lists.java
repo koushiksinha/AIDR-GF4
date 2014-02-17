@@ -22,5 +22,4 @@ public class Lists<T> {
     public List<T> getValues() {
         return values;
     }
-
 }
