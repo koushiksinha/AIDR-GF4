@@ -1,5 +1,0 @@
-jdbc.driver=com.mysql.jdbc.Driver
-jdbc.url=jdbc:mysql://YOURHOST/aidr_scheduler
-jdbc.user=root
-jdbc.password=admin
-
